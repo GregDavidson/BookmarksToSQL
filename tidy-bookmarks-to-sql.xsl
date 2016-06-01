@@ -1,5 +1,6 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0'?>
 <!--
+<?xml version='1.0' encoding='utf-8'?>
 
 This stylesheet transforms a tidy XML version of Netscape,
 Firefox and Chrome bookmarks into PostgreSQL SQL code for
@@ -32,41 +33,35 @@ Implementation Notes:
 	Need to ensure that ANY missing values are handled gracefully!
   Do missing text & attributes act like empty strings???
 
-Data is currently sanitized by:
+Data is sanitized by:
 	<xsl:param name="xx">
-	<xsl:value-of select='concat($q, translate($raw_xx, $q, $q2), $q)' />
+	<xsl:value-of select='concat($q, str:replace($raw_xx, $q, $qq), $q)' />
 	</xsl:param>
-Caution: This requires that any PostgreSQL code be able to reverse the
-translation!!
-If we use on some xsltproc extensions we can instead sanitize with
-something like:
-	<xsl:param name="xx">
-	<xsl:value-of select='concat($q, foo:replace($raw_xx, $q, $qq), $q)' />
-	</xsl:param>
+which requires exslt namespace
 -->
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:str="http://exslt.org/strings"
+  extension-element-prefixes="str"
+  version="1.0">
 
 	<xsl:strip-space elements="*"/>	<!--?? -->
 	<xsl:output method="text" omit-xml-declaration="yes" indent="yes" encoding="UTF-8"/>
 	
-	<xsl:variable name="newline" select="'&#010'" />
+  <xsl:variable name="newline" select="'&#010;'" /> <!-- line break required here! -->
 	<xsl:variable name="empty" select="''" />
 	<xsl:variable name="space" select="' '" />
 	<xsl:variable name="comma" select="','" />
 	<xsl:variable name="rpar" select="')'" />
 	
-	<xsl:variable name="in1" select="$space" />  <!-- indent 1 space -->
-	<!--  <xsl:variable name="in1" select="'&#09;'" /> -->  <!-- indent 1 tab -->
+	<!--  	<xsl:variable name="in1" select="$space" />  --> <!-- indent 1 space -->
+	<xsl:variable name="in1" select="'&#09;'" />  <!-- indent 1 tab -->
 	<xsl:variable name="q" select='"&apos;"' />  <!-- 1 single quote -->
 	<xsl:variable name="qq" select='"&apos;&apos;"' />  <!-- 2 single quotes -->
-	<xsl:variable name="q2" select="'&#09;'" />  <!-- single quote alternative -->
-	<!-- Warning: $q2 must be translated back into $q by SQL code receiving it!  -->
-	
-	<xsl:variable name="search_path" select="bookmarks_incoming" />
 	
 	<xsl:template match="html">
-		<xsl:value-of select='concat("SET search_path TO", $search_path)' />
+		<xsl:value-of select='concat("SET search_path TO ", "bookmarks_in", ";", $newline)' />
 		<xsl:apply-templates select="body"/>
 	</xsl:template>
 	
@@ -74,20 +69,19 @@ something like:
 	<xsl:template match="body">
 		<xsl:value-of select='concat("SELECT", $newline)' />
 		<xsl:apply-templates select="dl">
-			<xsl:with-param name="level" select="1" />
+			<xsl:with-param name="level" select="0" />
 			<xsl:with-param name="indent" select="$in1" />
 		</xsl:apply-templates>
-		<xsl:value-of select="[] FROM NULLIF(0,0) f0;" />
+		<xsl:value-of select='concat("[] FROM NULLIF(0,0) f0;", $newline)' />
 	</xsl:template>
 	
 	<!-- a list of bookmarks within a folder -->
 	<xsl:template match="dl">
 		<xsl:param name="level" select="1" />
-		<xsl:param name="new_level" select="$level + 1" />
-		<xsl:param name="indent" select="" />
+		<xsl:param name="indent" select="$empty" />
 		<xsl:param name="new_indent" select="concat($indent,$in1)" />
 		<xsl:apply-templates>
-			<xsl:with-param name="level" select="$new_level" />
+			<xsl:with-param name="level" select="$level" />
 			<xsl:with-param name="indent" select="$new_indent" />
 		</xsl:apply-templates>
 	</xsl:template>
@@ -96,19 +90,19 @@ something like:
 	<xsl:template match="dd">
 		<xsl:param name="level" select="1" />
 		<xsl:param name="new_level" select="$level + 1" />
-		<xsl:param name="indent" select="" />
+		<xsl:param name="indent" select="$empty" />
 		<xsl:param name="new_indent" select="concat($indent,$in1)" />
 		<xsl:param name="raw_folder_name">
 			<xsl:value-of select='normalize-space(h3/text())'/>
 		</xsl:param>
 		<xsl:param name="folder_name">
-			<xsl:value-of select='concat($q, translate($raw_folder_name, $q, $q2), $q)' />
+			<xsl:value-of select='concat($q, str:replace($raw_folder_name, $q, $qq), $q)' />
 		</xsl:param>
 		<xsl:param name="raw_folder_description">
 			<xsl:value-of select='normalize-space(text())'/>
 		</xsl:param>
 		<xsl:param name="folder_description">
-			<xsl:value-of select='concat($q, translate($raw_folder_description, $q, $q2), $q)' />
+			<xsl:value-of select='concat($q, str:replace($raw_folder_description, $q, $qq), $q)' />
 		</xsl:param>
 		<xsl:param name="raw_personal_toolbar_folder">
 			<xsl:choose>
@@ -117,7 +111,7 @@ something like:
 			</xsl:choose>
 		</xsl:param>
 		<xsl:param name="personal_toolbar_folder">
-			<xsl:value-of select='concat($q, translate($raw_personal_toolbar_folder, $q, $q2), $q)' />
+			<xsl:value-of select='concat($q, str:replace($raw_personal_toolbar_folder, $q, $qq), $q)' />
 		</xsl:param>
 		<xsl:param name="raw_add_date">
 			<xsl:choose>
@@ -126,7 +120,7 @@ something like:
 			</xsl:choose>
 		</xsl:param>
 		<xsl:param name="add_date">
-			<xsl:value-of select='concat($q, translate($raw_add_date, $q, $q2), $q)' />
+			<xsl:value-of select='concat($q, str:replace($raw_add_date, $q, $qq), $q)' />
 		</xsl:param>
 		<xsl:param name="raw_last_modified">
 			<xsl:choose>
@@ -135,11 +129,11 @@ something like:
 			</xsl:choose>
 		</xsl:param>
 		<xsl:param name="last_modified">
-			<xsl:value-of select='concat($q, translate($raw_last_modified, $q, $q2), $q)' />
+			<xsl:value-of select='concat($q, str:replace($raw_last_modified, $q, $qq), $q)' />
 		</xsl:param>
 		<xsl:param name="left" select='concat($indent, "( SELECT", $newline)' />
-		<xsl:param name="from" select='concat($indent, "[] FROM bookmark_folder(")' />
-		<xsl:param name="right" select='concat($indent, " ) ||", $newline)' />
+		<xsl:param name="from" select='concat($new_indent, "[] FROM bookmark_folder(")' />
+		<xsl:param name="right" select='concat($indent, ") ||", $newline)' />
 		<xsl:param name="old_f" select='concat("f",$level)' />
 		<xsl:param name="old_f_" select='concat($old_f, $comma)' />
 		<xsl:param name="new_f" select='concat("f",$new_level)' />
@@ -154,7 +148,7 @@ something like:
 			<xsl:with-param name="level" select="$new_level" />
 			<xsl:with-param name="indent" select="$new_indent" />
 		</xsl:apply-templates>
-		<xsl:value-of select='concat($from, $old_f_, $ptf_, $added_, $modified_, $fname_, $fdesc__, $new_f)' />
+		<xsl:value-of select='concat($from, $old_f_, $ptf_, $added_, $modified_, $fname_, $fdesc__, $new_f, $newline)' />
 		<xsl:value-of select='$right' />
 	</xsl:template>
 	
@@ -162,16 +156,39 @@ something like:
 	<xsl:template match="dt">
 		<xsl:param name="level" select="1" />
 		<xsl:param name="folder" select='concat("f",$level)' />
-		<xsl:param name="indent" select="" />
+		<xsl:param name="f_" select='concat($folder, $comma)' />
+		<xsl:param name="indent" select="$empty" />
 		<xsl:param name="raw_link" select="a/@href"/>
 		<xsl:param name="link">
-			<xsl:value-of select='concat($q, translate($raw_link, $q, $q2), $q)' />
+			<xsl:value-of select='concat($q, str:replace($raw_link, $q, $qq), $q)' />
 		</xsl:param>
+		<xsl:param name="link_" select='concat($link, $comma)' />
 		<xsl:param name="raw_title" select="a/text()"/>
 		<xsl:param name="title">
-			<xsl:value-of select='concat($q, translate($raw_title, $q, $q2), $q)' />
+			<xsl:value-of select='concat($q, str:replace($raw_title, $q, $qq), $q)' />
 		</xsl:param>
-		
+		<xsl:param name="title_" select='concat($title, $comma)' />
+		<xsl:param name="raw_add_date" select="a/@add_date"/>
+		<xsl:param name="add_date">
+			<xsl:value-of select='concat($q, str:replace($raw_add_date, $q, $qq), $q)' />
+		</xsl:param>
+		<xsl:param name="added_" select='concat($add_date, $comma)' />
+		<xsl:param name="raw_last_visit" select="a/@last_visit"/>
+		<xsl:param name="last_visit">
+			<xsl:value-of select='concat($q, str:replace($raw_last_visit, $q, $qq), $q)' />
+		</xsl:param>
+		<xsl:param name="visited_" select='concat($last_visit, $comma)' />
+		<xsl:param name="raw_last_modified" select="a/@last_modified"/>
+		<xsl:param name="last_modified">
+			<xsl:value-of select='concat($q, str:replace($raw_last_modified, $q, $qq), $q)' />
+		</xsl:param>
+		<xsl:param name="modified_" select='concat($last_modified, $comma)' />
+		<xsl:param name="raw_tags" select="a/@tags"/>
+		<xsl:param name="tags">
+			<xsl:value-of select='concat($q, str:replace($raw_tags, $q, $qq), $q)' />
+		</xsl:param>
+		<xsl:param name="tags_" select='concat($tags, $comma)' />
+		<xsl:value-of select='concat($indent, "bookmark(", $f_, $link_, $title_, $added_, $visited_, $modified_, $tags, ") || ", $newline)' />
 	</xsl:template>
 	
 	<!-- ignore everything else in the bookmarks file -->

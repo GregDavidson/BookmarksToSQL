@@ -1,12 +1,6 @@
 *~
-*.o
-*.so
-*.sql-out
-*.sql-out-err
-*.html
 *.tags
 *.vars
-*.tidy-xml
 TAGS
 TAGS-*
 Limbo
