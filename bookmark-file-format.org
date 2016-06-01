@@ -1,0 +1,131 @@
+* Netscape Bookmark File Format
+
+** Source
+
+https://msdn.microsoft.com/en-us/library/aa753582(v=vs.85).aspx
+
+** Notes & Descrepancies Between Browsers
+
+Throughout this file format definition, {date} is a decimal integer that represents the number of seconds elapsed since midnight January 1, 1970.
+
+*** META before TITLE
+
+Google Chrome and Firefox add META before TITLE:
+
+#+BEGIN_SRC html
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+	<TITLE>Bookmarks</TITLE>
+#+END_SRC
+
+*** <p> at end of file
+
+Google Chrome adds <p> at end of file:
+
+#+BEGIN_SRC html
+	</DL><p>
+#+END_SRC
+
+*** Firefox adds <DD>
+
+After some <DT>s and generally before the <DL> of a subfolder.
+
+*** Firefox adds <HR>
+ Firefox adds <HR> 
+
+#+BEGIN_SRC html
+    <DT><A HREF="about:epubcatalog" ADD_DATE="1396673295" LAST_MODIFIED="1420942
+509" ICON_URI="chrome://epubreader/skin/logo_menu.png">ePub-Catalog</A>
+    <HR>    <HR>    <DT><H3 ADD_DATE="1187724105" LAST_MODIFIED="1438761657">AAA</H3>
+    <DD>Things to file.
+#+END_SRC
+
+#+BEGIN_SRC html
+    </DL><p>
+    <HR>    <DT><A HREF="http://store.vmware.com/servlet/ControllerServlet;jsessionid=75CCCB96C298554E2852D11D38C7BC10?Action=DisplayPage&Locale=en_US&SiteID=vmware&id=ProductDetailsPage&productID=82671800" ADD_DATE="1223668613" LAST_MODIFIED="1266400573" ICON_URI="http://www.vmware.com/favicon.ico" ICON="data:image/png;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAAAAAABMLAAATCwAAEAAAAAAAAADu7u4A1tXVAMzKygCqp6cAaGNjAJWSkQB7eHcAu7m4AI6KigBwbGsA5eTkAKGengBhXVwAU05NAISAfwAAAAAA9t3d3d3d3W9t3d3d3d3d1t3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3LnUvNudiN3TAtUGQD0B3UqgmAZAPQHdsOp4BsC9Ad2i0wIDUC4C3anUEBEKIKXd3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3W3d3d3d3d3W9t3d3d3d3W+AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAG4AAAB0AAAAIAAAAAAAAAAAAAAAIAAAAGYAAABTAAAAdgAAAG6AAQwA" LAST_CHARSET="UTF-8">Buy VMware Workstation - Virtual Machine - Virtual PC</A>
+#+END_SRC
+
+#+BEGIN_SRC html
+                        <DT><A HREF="http://x.themes.org/" ADD_DATE="1214371105"
+ LAST_MODIFIED="1266407008">Themes.org - X</A>
+                        <HR>                        <HR>                    </DL><p>
+                </DL><p>
+#+END_SRC
+
+#+BEGIN_SRC html
+#+END_SRC
+
+** Format
+
+#+BEGIN_SRC html
+<!DOCTYPE NETSCAPE-Bookmark-file-1>
+	<!--This is an automatically generated file.
+	  It will be read and overwritten.
+	  Do Not Edit! -->
+	<Title>Bookmarks</Title>
+	<H1>Bookmarks</H1>
+	<DL>
+		{item}...
+	</DL>
+#+END_SRC
+
+*** {item}
+
+{item} ::= subfolder | shortcut | feed | Web Slice | icon
+
+Note: the
+- feed | Web Slice | icon
+possibilities which do not look like HTML
+also don't seem to occur in my example files.
+I'm going to ignore them for now!
+
+*** subfolder
+
+{description text} format from FIREFOX, need to check the others
+
+#+BEGIN_SRC html
+	<DT><H3 FOLDED ADD_DATE="{date}">{title}</H3>
+	<DD> <!-- FIREFOX -->
+		{description text} 
+		<DL><p>
+			{item}...
+		</DL><p>
+#+END_SRC
+
+*** shortcut
+
+TAGS format from FIREFOX, need to check the others
+
+#+BEGIN_SRC html
+	<DT><A
+		HREF="{url}"
+		ADD_DATE="{date}"
+		LAST_VISIT="{date}"
+		LAST_MODIFIED="{date}"
+		TAGS="one,two,..."
+		>{title}</A>
+	<DD> <!-- FIREFOX -->
+#+END_SRC
+
+*** feed
+
+#+BEGIN_SRC sh
+	FEED="true"
+	FEEDURL="href... "
+#+END_SRC
+
+*** Web Slice
+
+#+BEGIN_SRC sh
+	WEBSLICE="true"
+	ISLIVEPREVIEW="true"
+
+	PREVIEWSIZE="w x h"
+#+END_SRC
+
+*** icon
+
+#+BEGIN_SRC sh
+{item}
+
+ICON_URI="href... "
+#+END_SRC
