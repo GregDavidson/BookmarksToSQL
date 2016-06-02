@@ -6,16 +6,18 @@ popular browsers in a PostgreSQL database.
 ## Goals, i.e. Why Do This?
 
 1. Easy maintenance of Bookmark Organization
-- deduplicate links where cross-referencing not desired
-- correct and optimize tags and folders
-- merge in bookmarks from different browsers and sessions
+  * Deduplicate links where cross-referencing not desired
+  * Correct and optimize tags and folders
+  * Merge in bookmarks from different browsers and sessions
 2. Include subsets of bookmarks on selected web pages
-- always serve latest matching bookmarks
+  * Serve latest matching bookmarks
 3. Private and Secure Sync
-- replace proprietary, unreliable and primitive syncing systems
-3. Smart Social Bookmarking
-- multiple users sync to same database
-- users select what to share with specific folders and tags
+  * Replace proprietary, unreliable and primitive syncing systems
+4. Smart Social Bookmarking
+  * Multiple users sync to same database
+  * Users select what to share by Folder and Tag
+5. Full SQL Queries for Bookmarks
+  * What would this let you do?  
 
 ## Roadmap:
 
